@@ -1,14 +1,20 @@
 import { Image, StyleSheet, Text, View, SafeAreaView, TextInput, TouchableOpacity, Button } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { setInitialState } from '../feature/gallerySlice';
 
 
 const Gallery = (props: any) => {
     const { navigation } = props;
-    const [currentData, setCurrentData] = useState<any>([{}]);
+    //const [currentData, setCurrentData] = useState<any>([{}]);
+    //const currentData=useSelector((state:any)=>state?.counter?.value);
+    //console.log(currentData,"current data")
     const [viewpic, setViewPic] = useState(false);
     const [Photo, setPhotoDetails] = useState<any>();
-
+    const dispatch=useDispatch();
+    const currentData:any=useSelector((state:any)=>state?.gallery?.value)
+    console.log(currentData,"gallery.tsx")
 
     useEffect(() => {
 
@@ -22,7 +28,8 @@ const Gallery = (props: any) => {
             const savedData = await AsyncStorage.getItem("appData");
             if (savedData) {
                 const Data = JSON.parse(savedData);
-                setCurrentData(Data);
+                //setCurrentData(Data);
+                dispatch(setInitialState(Data));
             }
 
         } catch (error) {
@@ -31,17 +38,17 @@ const Gallery = (props: any) => {
     };
 
 
-    const list = currentData.map((x: any, index: number) => {
-        return <TouchableOpacity onPress={() => {
+    const list = currentData?.payload?.map((x: any, index: number) => {
+        return <TouchableOpacity key={x.id} onPress={() => {
             navigation.navigate('PreviewPhoto', {
-                available: true, photo: {
+                available: false, photo: {
                     path: x?.image,
                     notes: x.notes
                 },
                 isPreView: false
             });
         }}>
-            <View key={x.id} style={{ display: "flex", flexWrap: 'wrap', flexDirection: 'row' }} >
+            <View  style={{ display: "flex", flexWrap: 'wrap', flexDirection: 'row' }} >
                 <Image style={{ width: '100%', height: 200, margin: 5 }} source={{ uri: "file://," + x?.image }} />
                 <View style={{ position: 'absolute', top: 10, left: 10, right: 0, bottom: 0, justifyContent: 'flex-start', alignItems: 'flex-start' }}>
                     <Text style={{ color: "white" }}>{x.date?.split(',')[1]}</Text>

@@ -3,12 +3,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Image, TextInput, View, Text, Button, StyleSheet } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Geolocation from '@react-native-community/geolocation';
+import { useDispatch, useSelector } from "react-redux";
+import { updateGallery } from "../feature/gallerySlice";
 
 
 const PreviewPhoto=(props:any)=>{
     const {navigation,route,}=props;
    const  {photo,available,notes,isPreView}=route.params;
     const [tag, onChangeTag] = useState('');
+    const dispatch=useDispatch()
+    const savedData=useSelector((state:any)=>state?.gallery?.value)
     //const [available ,setAvailable]=useState(false);
 
     const getGUID = () => {
@@ -45,11 +49,15 @@ const PreviewPhoto=(props:any)=>{
                 date: new Date().toLocaleDateString('en-us', { weekday: "long", year: "numeric", month: "short", day: "numeric" }),
                 id: getGUID()
             }
-            const savedData = await AsyncStorage.getItem("appData");
+            //const savedData = await AsyncStorage.getItem("appData");
             
-                if (savedData) {
-                    const Data = JSON.parse(savedData);
+            console.log(savedData)
+            
+                if (savedData.payload) {
+                    const Data = savedData.payload;
+                    //savedData.payload.push(imageDetails);
                     await AsyncStorage.setItem("appData", JSON.stringify([...Data, imageDetails]));
+                    dispatch(updateGallery([...Data,imageDetails]))
                 } else {
                     await AsyncStorage.setItem("appData", JSON.stringify([imageDetails]));
                 }
@@ -64,10 +72,10 @@ const PreviewPhoto=(props:any)=>{
    return ( <SafeAreaView style={styles.preViewContainer}>
     
                 <Image style={styles.preview} source={{ uri: "file://," + photo?.path }} />
-                <TextInput onChangeText={onChangeTag} value={isPreView? tag: photo?.notes} placeholder="Add a comment" editable={!available} />
+                <TextInput onChangeText={onChangeTag} value={isPreView? tag: photo?.notes} placeholder="Add a comment" editable={!available && isPreView} />
                 <View style={{justifyContent:'center',alignItems:'center'}}>
                     {
-                        available ?
+                        available  ?
                             <View style={{ backgroundColor: "lightgreen", width: 200, height: 100, margin: 4, borderRadius: 10, alignItems: "center", justifyContent: "space-around" }}>
                                 <Text style={{justifyContent:'space-evenly'}}>You have already clicked an image for the day
                                 </Text>
